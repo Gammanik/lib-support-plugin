@@ -17,10 +17,8 @@
     </extensions>
 
     <actions>
-        <!-- Add your actions here -->
-        <action id="PopupDialogAction" class="PopupDialogAction" text="Pop Dialog Action"
-                description="Description action example">
-            <add-to-group group-id="ToolsMenu" anchor="first"/>
+        <action id="ShowPsiAction" class="ShowPsiAction" text="ShowPsi">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="first"/>
         </action>
     </actions>
 </idea-plugin>
