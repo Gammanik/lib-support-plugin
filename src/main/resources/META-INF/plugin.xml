@@ -1,11 +1,11 @@
 <idea-plugin>
     <id>org.example.lib-support</id>
-    <name>Plugin display name here</name>
-    <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
+    <name>Library support</name>
+    <vendor email="aaa@bbb.com" url="http://www.jetbrains.com">Jbr</vendor>
 
     <description><![CDATA[
-    Enter short description for your plugin here.<br>
-    <em>most HTML tags may be used</em>
+    Entered short description for your plugin here.
+    most HTML tags may be used
     ]]></description>
 
     <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
@@ -18,5 +18,9 @@
 
     <actions>
         <!-- Add your actions here -->
+        <action id="PopupDialogAction" class="PopupDialogAction" text="Pop Dialog Action"
+                description="Description action example">
+            <add-to-group group-id="ToolsMenu" anchor="first"/>
+        </action>
     </actions>
 </idea-plugin>
