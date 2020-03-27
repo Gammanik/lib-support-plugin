@@ -13,6 +13,7 @@ import com.intellij.psi.impl.PsiElementBase
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtWhileExpression
 import java.util.*
 import javax.swing.Icon
 
@@ -35,14 +36,20 @@ class LineMarkerProvider : RelatedItemLineMarkerProvider() {
         element: PsiElement,
         result: MutableCollection<in RelatedItemLineMarkerInfo<*>?>) {
 
-        if (element.toString() != "PsiElement(while)") {
+        val lg: Logger = Logger.getInstance(LineMarkerProvider::class.java)
+        lg.debug("kk")
+
+        if (element is KtWhileExpression) {
+            val ic : Icon = AllIcons.Icons.Ide.NextStep
+            val builder = NavigationGutterIconBuilder
+                .create(ic)
+                .setTarget(element)
+                .setTooltipText("while block")
+            result.add(builder.createLineMarkerInfo(element))
+        } else {
             return
         }
 
-        val ic : Icon = AllIcons.Icons.Ide.NextStepInverted
-        val builder = NavigationGutterIconBuilder
-            .create(ic)
-            .setTarget(element)
-        result.add(builder.createLineMarkerInfo(element))
+
     }
 }

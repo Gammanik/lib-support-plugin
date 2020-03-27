@@ -1,16 +1,12 @@
 plugins {
     id 'java'
     id 'org.jetbrains.intellij' version '0.4.16'
-    id 'org.jetbrains.kotlin.jvm' version '1.3.61'
+    id 'org.jetbrains.kotlin.jvm' version '1.3.71'
 }
 
-
+// See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    def ideVersion = System.getenv().getOrDefault("lib-support", "IU-172.3757.29")
-    println("Using ide version: ${ideVersion}")
-    version ideVersion
-    // The artifact name is deliberately not "live-plugin" because plugins are stored in the "live-plugins" directory.
-    // The "LivePlugin" directory is deleted on each plugin update so it's good make it distinct from "live-plugins".
+    version '2019.3.3'
     pluginName = "lib-support"
     downloadSources = true
     sameSinceUntilBuild = false
@@ -18,9 +14,6 @@ intellij {
     plugins = ["Kotlin", "java"]
 }
 
-runIde {
-    jvmArgs '--add-exports', 'java.base/jdk.internal.vm=ALL-UNNAMED'
-}
 
 sourceSets {
     pluginUtilKotlin {
@@ -48,10 +41,6 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
-// See https://github.com/JetBrains/gradle-intellij-plugin/
-intellij {
-    version '2019.3.3'
-}
 compileKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
