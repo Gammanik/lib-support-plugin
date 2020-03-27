@@ -4,6 +4,36 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.3.61'
 }
 
+
+intellij {
+    def ideVersion = System.getenv().getOrDefault("lib-support", "IU-172.3757.29")
+    println("Using ide version: ${ideVersion}")
+    version ideVersion
+    // The artifact name is deliberately not "live-plugin" because plugins are stored in the "live-plugins" directory.
+    // The "LivePlugin" directory is deleted on each plugin update so it's good make it distinct from "live-plugins".
+    pluginName = "lib-support"
+    downloadSources = true
+    sameSinceUntilBuild = false
+    updateSinceUntilBuild = false
+    plugins = ["Kotlin", "java"]
+}
+
+runIde {
+    jvmArgs '--add-exports', 'java.base/jdk.internal.vm=ALL-UNNAMED'
+}
+
+sourceSets {
+    pluginUtilKotlin {
+        kotlin { srcDir "src/plugin-util-kotlin" }
+        compileClasspath = main.output + configurations.compileClasspath + configurations.pluginUtilKotlinCompileClasspath
+    }
+}
+
+jar {
+    from sourceSets.pluginUtilKotlin.output
+}
+
+
 group 'org.example'
 version '1.0-SNAPSHOT'
 
