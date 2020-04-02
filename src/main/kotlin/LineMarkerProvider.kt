@@ -19,18 +19,6 @@ import javax.swing.Icon
 
 
 class LineMarkerProvider : RelatedItemLineMarkerProvider() {
-    private fun findProperties(project: Project): List<PsiElement> {
-        val result: MutableList<PsiElement> = mutableListOf()
-        val virtualFiles: Collection<VirtualFile> = FilenameIndex.getAllFilesByExt(project, "kt")
-
-        for (virtualFile: VirtualFile in virtualFiles) {
-            val file: KtFile = PsiManager.getInstance(project).findFile(virtualFile) as KtFile
-            val properties: Array<PsiElement> =
-                PsiTreeUtil.getChildrenOfType(file, PsiElementBase::class.java) as Array<PsiElement>
-            Collections.addAll(result, *properties)
-        }
-        return result
-    }
 
     override fun collectNavigationMarkers(
         element: PsiElement,
