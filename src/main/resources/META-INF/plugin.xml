@@ -9,12 +9,14 @@
     <depends>org.jetbrains.kotlin</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <codeInsight.lineMarkerProvider language="kotlin"
-                                        implementationClass="LineMarkerProvider"/>
+<!--        <codeInsight.lineMarkerProvider language="kotlin"-->
+<!--                                        implementationClass="ExampleLineMarkerProvider"/>-->
+
+        <codeInsight.lineMarkerProvider language="kotlin" implementationClass="LibMethodLineMarker"/>
     </extensions>
 
     <actions>
-        <action id="ShowPsiAction" class="ShowPsiAction" text="ShowPsi">
+        <action id="ShowPsiAction" class="ShowPsiAction" text="Update Library Plugins Data">
             <add-to-group group-id="ProjectViewPopupMenu" anchor="first"/>
         </action>
     </actions>

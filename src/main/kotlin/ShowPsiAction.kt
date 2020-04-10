@@ -1,50 +1,33 @@
-import com.esotericsoftware.minlog.Log
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.ui.Messages
-import com.intellij.pom.Navigatable
-import com.intellij.psi.PsiFile
 import org.apache.log4j.Level
-import org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback
-import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory
+import org.jetbrains.kotlin.jsr223.KotlinJsr223StandardScriptEngineFactory4Idea
+import java.io.File
+import java.io.FileReader
+import java.io.Reader
 import javax.script.ScriptEngine
-import javax.script.ScriptEngineFactory
-import javax.script.ScriptEngineManager
+
 
 class ShowPsiAction : AnAction() {
     override fun actionPerformed(e: AnActionEvent) {
-        setIdeaIoUseFallback()
         val lg: Logger = Logger.getInstance(ShowPsiAction::class.java)
-        val engine: ScriptEngine = ScriptEngineManager().getEngineByExtension("kts")!!
+        lg.setLevel(Level.ALL)
 
-//        val engineFactory: ScriptEngineFactory = KotlinJsr223JvmLocalScriptEngineFactory()
-//        val engine: ScriptEngine = engineFactory.scriptEngine
-        print("eng: $engine")
-        val res = engine.eval("2 + 2")
-        print("eval: $res")
-        lg.trace("ee: $res $engine")
+        @Suppress("UnstableApiUsage")
+        val engine: ScriptEngine = KotlinJsr223StandardScriptEngineFactory4Idea().scriptEngine
 
+        val p: Project = e.project!!
 
-        val currentProject: Project = e.project!!
-        val dlgMsg = StringBuffer(e.presentation.text.toString() + " Selected!")
-        val dlgTitle = "description" // e.presentation.description
-
-        // If an element is selected in the editor, add info about it.
-        val nav: Navigatable? = e.getData(CommonDataKeys.NAVIGATABLE)!!
-        if (nav != null) {
-            dlgMsg.append(java.lang.String.format("\nSelected Element: %s", nav.toString()))
-        }
-        dlgMsg.append("\n\n")
-        val psiFile : PsiFile? = e.getData(LangDataKeys.PSI_FILE)
-        if (psiFile != null) {
-            dlgMsg.append(psiFile.toString())
-        }
-        dlgMsg.append(psiFile)
-        Messages.showMessageDialog(currentProject, dlgMsg.toString(), dlgTitle, Messages.getInformationIcon())
+        ModuleRootManager.getInstance(ModuleManager.getInstance(p).modules[0]).sourceRoots
+        val script = File(p.basePath + "/src/main/resources/support/s1.kts")
+        val reader: Reader = FileReader(script)
+        val res = engine.eval(reader)
+        Messages.showMessageDialog(res.toString(), "title", Messages.getInformationIcon())
     }
 
     override fun update(e: AnActionEvent) {

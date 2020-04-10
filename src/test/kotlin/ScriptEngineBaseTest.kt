@@ -1,15 +1,21 @@
+import com.intellij.openapi.ui.Messages
+import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
 import org.jetbrains.kotlin.daemon.common.threadCpuTime
 import org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback
-import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngine
+import org.jetbrains.kotlin.jsr223.KotlinJsr223StandardScriptEngineFactory4Idea
 import org.junit.Assert
+//import org.junit.AssertDo
 import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertDoesNotThrow
+import org.junit.jupiter.api.Assertions.assertNotNull
 import java.lang.management.ManagementFactory
 import java.util.concurrent.TimeUnit
 import javax.script.*
+import kotlin.test.assertEquals
 
 
-class ScriptEngineBaseTest {
+class ScriptEngineBaseTest: JavaCodeInsightFixtureTestCase() {
 
     init {
         setIdeaIoUseFallback()
@@ -39,24 +45,34 @@ class ScriptEngineBaseTest {
 
     @Test
     fun testEngine() {
-        val factory = ScriptEngineManager().getEngineByExtension("kts").factory
+        @SuppressWarnings("UnstableApiUsage")
+        val engine: ScriptEngine = KotlinJsr223StandardScriptEngineFactory4Idea().scriptEngine
+        val factory = engine.factory
         Assert.assertNotNull(factory)
-        val engine = factory!!.scriptEngine
-        Assert.assertNotNull(engine as? KotlinJsr223JvmLocalScriptEngine)
-        Assert.assertSame(factory, engine!!.factory)
+        Assert.assertSame(factory, engine.factory)
         val bindings = engine.createBindings()
         Assert.assertTrue(bindings is SimpleBindings)
     }
 
     @Test
     fun testSimpleEval() {
-        val engine = ScriptEngineManager().getEngineByExtension("kts")!!
+        val engine: ScriptEngine = KotlinJsr223StandardScriptEngineFactory4Idea().scriptEngine
+        val factory = engine.factory
         val res1 = engine.eval("val x = 3")
         Assert.assertNull(res1)
         val res2 = engine.eval("x + 2")
         Assert.assertEquals(5, res2)
     }
 
+    @Test
+    fun testFactory4Idea() {
+        @Suppress("UnstableApiUsage")
+        val engine = KotlinJsr223StandardScriptEngineFactory4Idea().scriptEngine
+
+        val res = engine.eval("2 + 2")
+        print("res: $res")
+        assertEquals(4, 4)
+    }
 
 }
 
