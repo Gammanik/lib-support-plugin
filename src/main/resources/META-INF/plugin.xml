@@ -9,10 +9,8 @@
     <depends>org.jetbrains.kotlin</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-<!--        <codeInsight.lineMarkerProvider language="kotlin"-->
-<!--                                        implementationClass="ExampleLineMarkerProvider"/>-->
-
         <codeInsight.lineMarkerProvider language="kotlin" implementationClass="LibMethodLineMarker"/>
+        <projectService serviceImplementation="MethodRegService"/>
     </extensions>
 
     <actions>

@@ -1,10 +1,13 @@
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.ui.Messages
+import dsl.MethodToMark
 import org.apache.log4j.Level
 import org.jetbrains.kotlin.jsr223.KotlinJsr223StandardScriptEngineFactory4Idea
 import java.io.File
@@ -18,9 +21,11 @@ class ShowPsiAction : AnAction() {
         val lg: Logger = Logger.getInstance(ShowPsiAction::class.java)
         lg.setLevel(Level.ALL)
 
+        val s = ProjectManager.getInstance().defaultProject.service<MethodRegService>()
+        s.updateMarkedMethods(mapOf(Pair("LibClassOne", "sMethodOne") to MethodToMark("LibClassOne", "sMethodOne")))
+
         @Suppress("UnstableApiUsage")
         val engine: ScriptEngine = KotlinJsr223StandardScriptEngineFactory4Idea().scriptEngine
-
         val p: Project = e.project!!
 
         ModuleRootManager.getInstance(ModuleManager.getInstance(p).modules[0]).sourceRoots
