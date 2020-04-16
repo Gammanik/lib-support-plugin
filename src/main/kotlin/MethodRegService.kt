@@ -9,6 +9,7 @@ class MethodRegService(project: Project?) {
         }
     }
 
+    // полностью хранить квалифицированное имя java.lang.
     private var methodsToMark: Map<Pair<String, String>, MethodToMark> = mapOf()
 
     fun updateMarkedMethods(methods: Map<Pair<String, String>, MethodToMark>) {

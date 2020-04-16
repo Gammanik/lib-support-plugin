@@ -9,30 +9,26 @@ import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.ui.Messages
 import dsl.MethodToMark
 import org.apache.log4j.Level
+import org.jetbrains.kotlin.jsr223.KotlinJsr223JvmScriptEngine4Idea
 import org.jetbrains.kotlin.jsr223.KotlinJsr223StandardScriptEngineFactory4Idea
 import java.io.File
 import java.io.FileReader
 import java.io.Reader
+import java.util.jar.Attributes
+import java.util.jar.JarFile
+import javax.script.Invocable
 import javax.script.ScriptEngine
-
+import kotlin.script.experimental.api.EvaluationResult
+import kotlin.script.experimental.api.ResultWithDiagnostics
+import kotlin.script.experimental.host.toScriptSource
 
 class ShowPsiAction : AnAction() {
     override fun actionPerformed(e: AnActionEvent) {
-        val lg: Logger = Logger.getInstance(ShowPsiAction::class.java)
-        lg.setLevel(Level.ALL)
-
+        //todo: use  val s = p.service<MethodRegService>()
         val s = ProjectManager.getInstance().defaultProject.service<MethodRegService>()
-        s.updateMarkedMethods(mapOf(Pair("LibClassOne", "sMethodOne") to MethodToMark("LibClassOne", "sMethodOne")))
-
-        @Suppress("UnstableApiUsage")
-        val engine: ScriptEngine = KotlinJsr223StandardScriptEngineFactory4Idea().scriptEngine
-        val p: Project = e.project!!
-
-        ModuleRootManager.getInstance(ModuleManager.getInstance(p).modules[0]).sourceRoots
-        val script = File(p.basePath + "/src/main/resources/support/s1.kts")
-        val reader: Reader = FileReader(script)
-        val res = engine.eval(reader)
-        Messages.showMessageDialog(res.toString(), "title", Messages.getInformationIcon())
+        s.updateMarkedMethods(mapOf(Pair("LibClassOne", "sMethodOne")
+                to MethodToMark("LibClassOne", "sMethodOne")))
+        Messages.showMessageDialog("sup", "title", Messages.getInformationIcon())
     }
 
     override fun update(e: AnActionEvent) {

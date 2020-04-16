@@ -24,6 +24,7 @@ class LibMethodLineMarker: LineMarkerProvider {
         @Suppress("UnstableApiUsage")
         val dotExpressions = elements.filterIsInstance<KtDotQualifiedExpression>()
 
+        // todo: do not use .defaultProject
         val s = ProjectManager.getInstance().defaultProject.service<MethodRegService>()
         val ms = s.getMarkedMethods()
 
@@ -43,8 +44,6 @@ class LibMethodLineMarker: LineMarkerProvider {
                     result.add(builder.createLineMarkerInfo(callExpr))
                 }
             }
-
-
 
         }
     }

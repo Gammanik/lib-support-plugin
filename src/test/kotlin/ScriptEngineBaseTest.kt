@@ -54,25 +54,5 @@ class ScriptEngineBaseTest: JavaCodeInsightFixtureTestCase() {
         Assert.assertTrue(bindings is SimpleBindings)
     }
 
-    @Test
-    fun testSimpleEval() {
-        val engine: ScriptEngine = KotlinJsr223StandardScriptEngineFactory4Idea().scriptEngine
-        val factory = engine.factory
-        val res1 = engine.eval("val x = 3")
-        Assert.assertNull(res1)
-        val res2 = engine.eval("x + 2")
-        Assert.assertEquals(5, res2)
-    }
-
-    @Test
-    fun testFactory4Idea() {
-        @Suppress("UnstableApiUsage")
-        val engine = KotlinJsr223StandardScriptEngineFactory4Idea().scriptEngine
-
-        val res = engine.eval("2 + 2")
-        print("res: $res")
-        assertEquals(4, 4)
-    }
-
 }
 
