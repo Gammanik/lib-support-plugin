@@ -44,6 +44,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation "org.jetbrains.kotlin:kotlin-script-util"
     implementation "org.jetbrains.kotlin:kotlin-script-runtime"
+    compile project(':dsl-lib-support')
 
     testImplementation "org.junit.jupiter:junit-jupiter:5.5.2"
 }

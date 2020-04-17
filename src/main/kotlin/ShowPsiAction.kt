@@ -7,7 +7,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.ui.Messages
-import dsl.MethodToMark
 import org.apache.log4j.Level
 import org.jetbrains.kotlin.jsr223.KotlinJsr223JvmScriptEngine4Idea
 import org.jetbrains.kotlin.jsr223.KotlinJsr223StandardScriptEngineFactory4Idea

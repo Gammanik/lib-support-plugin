@@ -1,6 +1,5 @@
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
-import dsl.MethodToMark
 
 class MethodRegService(project: Project?) {
     companion object {
