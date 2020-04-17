@@ -25,12 +25,21 @@ class ShowPsiAction : AnAction() {
             arrayOf(Map::class)
         )
         val script = FileReader(File(e.project!!.basePath + "/src/main/resources/support/example.kts"))
-        val res = engine.eval(script)
+//        val res = engine.eval(script)
 
         val s = ProjectManager.getInstance().defaultProject.service<MethodRegService>()
-        s.updateMarkedMethods(mapOf(Pair("LibClassOne", "sMethodOne")
-                to MethodToMark("LibClassOne", "sMethodOne")))
-        Messages.showMessageDialog(res.toString(), "title", Messages.getInformationIcon())
+        s.updateMarkedMethods(mapOf("LibExample.someMethod"
+                to MethodToMark("LibClassOne", "sMethodOne")
+        ))
+
+//        if (res is Map<*, *>) {
+//            val methods: MutableMap<Pair<String, String>, MethodToMark> = mutableMapOf()
+//            for (m in res){
+//                methods.put(m.key as Pair<String, String>, m.value as MethodToMark)
+//            }
+//
+//            Messages.showMessageDialog(res.toString(), "title", Messages.getInformationIcon())
+//        }
     }
 
     override fun update(e: AnActionEvent) {
