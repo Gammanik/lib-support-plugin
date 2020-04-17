@@ -1,5 +1,4 @@
 data class MethodToMark(
-    var className: String? = null,
     var name: String? = null,
     var icon: String? = null
 )
@@ -9,9 +8,9 @@ annotation class LibSupportDslMarker
 
 @LibSupportDslMarker
 class MethodBuilder {
-    var className: String? = null
     var name: String? = null
-    fun build(): MethodToMark = MethodToMark(className, name)
+    var icon: String? = null
+    fun build(): MethodToMark = MethodToMark(name, icon)
 }
 
 @LibSupportDslMarker
@@ -29,17 +28,12 @@ class MethodListBuilder {
         methods.addAll(Methods().apply(methodsList))
     }
 
-    fun build(): Map<Pair<String, String>, MethodToMark> {
-        val resMethodsMap = HashMap<Pair<String, String>, MethodToMark>()
-
-        for (m in methods) {
-            resMethodsMap.put(Pair(m.className!!, m.name!!), m)
-        }
-
+    fun build(): Map<String, MethodToMark> {
+        val resMethodsMap = HashMap<String, MethodToMark>()
+        methods.forEach{ resMethodsMap.put(it.name!!, it) }
         return resMethodsMap
     }
 }
 
-fun methodsToMark(methods: MethodListBuilder.() -> Unit): Map<Pair<String, String>, MethodToMark> =
+fun methodsToMark(methods: MethodListBuilder.() -> Unit): Map<String, MethodToMark> =
     MethodListBuilder().apply(methods).build()
-
