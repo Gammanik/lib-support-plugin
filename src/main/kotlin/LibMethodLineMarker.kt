@@ -7,42 +7,49 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.psi.PsiElement
-import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.intellij.psi.PsiReference
 import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
-import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.idea.references.KtSimpleNameReference
+import org.jetbrains.kotlin.psi.KtQualifiedExpression
+import org.jetbrains.kotlin.psi.KtReferenceExpression
 import javax.swing.Icon
 
 
 class LibMethodLineMarker: LineMarkerProvider {
-    override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
-        return null
-    }
-
     override fun collectSlowLineMarkers(
         elements: MutableList<PsiElement>,
         result: MutableCollection<LineMarkerInfo<PsiElement>>
     ) {
-        // todo: do not use defaultProject
-        val s = ProjectManager.getInstance().defaultProject.service<MethodRegService>()
-        val ms = s.getMarkedMethods()
+        // todo: do not use .defaultProject
+        val service = ProjectManager.getInstance().defaultProject.service<MethodRegService>()
+        val markedMethodsTable = service.getMarkedMethods()
 
-        for (el in elements) {
-            val ref = el.reference?.resolve()
-            val name = ref?.getKotlinFqName()?.asString()
-            val method = ms.get(name)
+        elements.filterIsInstance<KtQualifiedExpression>()
+            .filter { it.lastChild?.firstChild != null
+                    && it.lastChild?.firstChild is KtReferenceExpression}
+            .forEach {
+                val methodCall: KtReferenceExpression = it.lastChild?.firstChild as KtReferenceExpression
+                val methodRefs = methodCall.references.filterIsInstance<KtSimpleNameReference>()
 
-            if (method != null) {
-                val ic : Icon = AllIcons.Javaee.UpdateRunningApplication
-                    val builder = NavigationGutterIconBuilder
-                        .create(ic)
-                        .setTarget(el)
-                        .setTooltipText(name!!)
-                    result.add(builder.createLineMarkerInfo(el))
+                for (ref: PsiReference in methodRefs) {
+                    val fqMethodName = ref.resolve()?.getKotlinFqName().toString()
+                    val methodToMark: MethodToMark? = markedMethodsTable[fqMethodName]
+
+                    if (methodToMark != null) {
+                        val ic: Icon = AllIcons.Javaee.UpdateRunningApplication
+                        val builder = NavigationGutterIconBuilder
+                            .create(ic)
+                            .setTarget(it)
+                            .setTooltipText(methodToMark.name!!)
+                        result.add(builder.createLineMarkerInfo(it))
+                    }
+                }
             }
-        }
 
     }
 
 
-
+    override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
+        return null
+    }
 }
