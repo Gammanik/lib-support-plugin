@@ -14,19 +14,6 @@ intellij {
     plugins = ["Kotlin", "java"]
 }
 
-
-sourceSets {
-    pluginUtilKotlin {
-        kotlin { srcDir "src/plugin-util-kotlin" }
-        compileClasspath = main.output + configurations.compileClasspath + configurations.pluginUtilKotlinCompileClasspath
-    }
-}
-
-jar {
-    from sourceSets.pluginUtilKotlin.output
-}
-
-
 group 'org.example'
 version '1.0-SNAPSHOT'
 
