@@ -1,2 +1,3 @@
 rootProject.name = 'lib-support'
 
+include 'dsl-lib-support'

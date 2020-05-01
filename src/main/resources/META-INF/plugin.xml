@@ -3,21 +3,18 @@
     <name>Library support</name>
     <vendor email="aaa@bbb.com" url="http://www.jetbrains.com">Jbr</vendor>
 
-    <description><![CDATA[
-    Entered short description for your plugin here.
-    most HTML tags may be used
-    ]]></description>
-
     <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
          on how to target different products -->
     <depends>com.intellij.modules.platform</depends>
+    <depends>org.jetbrains.kotlin</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <!-- Add your extensions here -->
+        <codeInsight.lineMarkerProvider language="kotlin" implementationClass="LibMethodLineMarker"/>
+        <projectService serviceImplementation="MethodRegService"/>
     </extensions>
 
     <actions>
-        <action id="ShowPsiAction" class="ShowPsiAction" text="ShowPsi">
+        <action id="ShowPsiAction" class="ShowPsiAction" text="Update Library Plugins Data">
             <add-to-group group-id="ProjectViewPopupMenu" anchor="first"/>
         </action>
     </actions>
