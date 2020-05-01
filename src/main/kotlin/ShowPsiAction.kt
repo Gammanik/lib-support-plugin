@@ -15,7 +15,6 @@ import kotlin.script.experimental.jvm.util.KotlinJars
 
 class ShowPsiAction : AnAction() {
     override fun actionPerformed(e: AnActionEvent) { //todo: use  val s = p.service<MethodRegService>()
-        Thread.currentThread().contextClassLoader = this.javaClass.classLoader
         val dslPath = toSystemIndependentName(getPluginsPath() + "/lib-support/lib/dsl-lib-support.jar")
         val jarNames: List<File> = KotlinJars.kotlinScriptStandardJars + listOf(File(dslPath))
 
@@ -28,11 +27,23 @@ class ShowPsiAction : AnAction() {
             arrayOf(Map::class)
         )
         val scriptFile = FileReader(File(e.project!!.basePath + "/src/main/resources/support/example.kts"))
-        val res: Map<String, MethodToMark>? = engine.eval(scriptFile) as Map<String, MethodToMark>?
+        val res: Map<String, MethodToMark> = withCorrectClassLoader { engine.eval(scriptFile) as Map<String, MethodToMark> }
 
         val service = ProjectManager.getInstance().defaultProject.service<MethodRegService>()
-        service.updateMarkedMethods(res!!)
+        service.updateMarkedMethods(res)
         Messages.showMessageDialog("$res", "title", Messages.getInformationIcon())
+    }
+
+    private fun <T>withCorrectClassLoader(action: () -> T) : T {
+        var res: T? = null
+        val oldClassLoader = Thread.currentThread().contextClassLoader
+        Thread.currentThread().contextClassLoader = this.javaClass.classLoader
+        try {
+            res = action()
+        } finally {
+            Thread.currentThread().contextClassLoader = oldClassLoader
+        }
+        return res!!
     }
 
     override fun update(e: AnActionEvent) {
