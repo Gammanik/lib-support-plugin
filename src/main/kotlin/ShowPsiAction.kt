@@ -57,8 +57,8 @@ class ShowPsiAction : AnAction() {
         Messages.showMessageDialog("$res", "title", Messages.getInformationIcon())
     }
 
-    private fun <T>withCorrectClassLoader(action: () -> T?) : T {
-        var res: T? = null
+    private fun <T>withCorrectClassLoader(action: () -> T) : T {
+        val res: T
         val oldClassLoader = Thread.currentThread().contextClassLoader
         Thread.currentThread().contextClassLoader = this.javaClass.classLoader
         try {
@@ -66,7 +66,7 @@ class ShowPsiAction : AnAction() {
         } finally {
             Thread.currentThread().contextClassLoader = oldClassLoader
         }
-        return res!!
+        return res
     }
 
     override fun update(e: AnActionEvent) {
