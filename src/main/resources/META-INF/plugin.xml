@@ -11,10 +11,21 @@
     <extensions defaultExtensionNs="com.intellij">
         <codeInsight.lineMarkerProvider language="kotlin" implementationClass="LibMethodLineMarker"/>
         <projectService serviceImplementation="MethodRegService"/>
+
+<!--        <localInspection language="kotlin" />-->
+<!--                         displayName="Todo: inspectionName"-->
+<!--                         groupPath="Java,Kotlin"-->
+<!--                         groupBundle="messages.InspectionsBundle"-->
+<!--                         groupKey="group.names.probable.bugs"-->
+<!--                         level="ERROR"-->
+<!--                         implementationClass="MyInspection"/>-->
     </extensions>
 
     <actions>
-        <action id="ShowPsiAction" class="ShowPsiAction" text="Update Library Plugins Data">
+        <action id="UpdateIcons" class="ShowPsiAction" text="Update Library Plugins Data">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="first"/>
+        </action>
+        <action id="UpdateInspections" class="AddInspectionAction" text="Update Inspections">
             <add-to-group group-id="ProjectViewPopupMenu" anchor="first"/>
         </action>
     </actions>

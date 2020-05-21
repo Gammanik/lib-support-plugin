@@ -6,7 +6,9 @@ import com.intellij.ui.DocumentAdapter
 import com.intellij.util.IncorrectOperationException
 import com.siyeh.ig.psiutils.ExpressionUtils
 import org.jetbrains.annotations.NonNls
+import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.lexer.KtToken
+import org.jetbrains.kotlin.lexer.KtTokens
 import java.awt.FlowLayout
 import java.util.*
 import javax.swing.JComponent
@@ -19,7 +21,7 @@ import javax.swing.event.DocumentEvent
  * Implements an inspection to detect when object references are compared using 'a==b' or 'a!=b'
  * The quick fix converts these comparisons to 'a.equals(b) or '!a.equals(b)' respectively.
  */
-class CustomInspection : AbstractBaseJavaLocalInspectionTool() {
+class CustomInspection : AbstractKotlinInspection() {
     private val myQuickFix = CriQuickFix()
 
     // This string holds a list of classes relevant to this inspection.
@@ -86,7 +88,7 @@ class CustomInspection : AbstractBaseJavaLocalInspectionTool() {
             override fun visitBinaryExpression(expression: PsiBinaryExpression) {
                 super.visitBinaryExpression(expression)
                 val opSign = expression.operationTokenType
-                if (opSign === JavaTokenType.EQEQ || opSign === JavaTokenType.NE) {
+                if (opSign === KtTokens.EQEQ) {
                     // The binary expression is the correct type for this inspection
                     val lOperand = expression.lOperand
                     val rOperand = expression.rOperand
