@@ -10,15 +10,7 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <codeInsight.lineMarkerProvider language="kotlin" implementationClass="LibMethodLineMarker"/>
-        <projectService serviceImplementation="MethodRegService"/>
-
-<!--        <localInspection language="kotlin" />-->
-<!--                         displayName="Todo: inspectionName"-->
-<!--                         groupPath="Java,Kotlin"-->
-<!--                         groupBundle="messages.InspectionsBundle"-->
-<!--                         groupKey="group.names.probable.bugs"-->
-<!--                         level="ERROR"-->
-<!--                         implementationClass="MyInspection"/>-->
+        <projectService serviceImplementation="CommandsRegService"/>
     </extensions>
 
     <actions>

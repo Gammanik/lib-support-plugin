@@ -50,10 +50,10 @@ class ShowPsiAction : AnAction() {
             { ctx, argTypes -> ScriptArgsWithTypes(arrayOf(ctx.getBindings(ScriptContext.ENGINE_SCOPE)), argTypes ?: emptyArray()) },
             arrayOf(Map::class)
         )
-        val res: Map<String, MethodToMark> = withCorrectClassLoader { engine.eval(scriptFile) as Map<String, MethodToMark> }
+        val res: Map<String, Any> = withCorrectClassLoader { engine.eval(scriptFile) as Map<String, Any> }
 
-        val service = ProjectManager.getInstance().defaultProject.service<MethodRegService>()
-        service.updateMarkedMethods(res)
+//        val service = ProjectManager.getInstance().defaultProject.service<CommandsRegService>()
+//        service.updateMarkedMethods(res)
         Messages.showMessageDialog("$res", "title", Messages.getInformationIcon())
     }
 
@@ -69,6 +69,7 @@ class ShowPsiAction : AnAction() {
         return res
     }
 
+    // todo: do I need it?
     override fun update(e: AnActionEvent) {
         val project = e.project
         e.presentation.isEnabledAndVisible = project != null

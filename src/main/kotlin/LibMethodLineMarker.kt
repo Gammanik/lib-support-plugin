@@ -2,9 +2,7 @@ import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationGutterIconBuilder
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
@@ -21,8 +19,8 @@ class LibMethodLineMarker: LineMarkerProvider {
         result: MutableCollection<LineMarkerInfo<PsiElement>>
     ) {
         // todo: do not use .defaultProject
-        val service = ProjectManager.getInstance().defaultProject.service<MethodRegService>()
-        val markedMethodsTable = service.getMarkedMethods()
+        val service = ProjectManager.getInstance().defaultProject.service<CommandsRegService>()
+        val markedMethodsTable = service.getMarkedMethods()["lineMarkers"] as Map<String, LineMarker>
 
         elements.filterIsInstance<KtQualifiedExpression>()
             .filter { it.lastChild?.firstChild != null
@@ -33,14 +31,14 @@ class LibMethodLineMarker: LineMarkerProvider {
 
                 for (ref: PsiReference in methodRefs) {
                     val fqMethodName = ref.resolve()?.getKotlinFqName().toString()
-                    val methodToMark: MethodToMark? = markedMethodsTable[fqMethodName]
+                    val methodToMark: LineMarker? = markedMethodsTable[fqMethodName]
 
                     if (methodToMark != null) {
                         val ic: Icon = AllIcons.Javaee.UpdateRunningApplication
                         val builder = NavigationGutterIconBuilder
                             .create(ic)
                             .setTarget(it)
-                            .setTooltipText(methodToMark.name!!)
+                            .setTooltipText(methodToMark.message!!)
                         result.add(builder.createLineMarkerInfo(it))
                     }
                 }
