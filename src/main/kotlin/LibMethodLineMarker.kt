@@ -20,7 +20,7 @@ class LibMethodLineMarker: LineMarkerProvider {
     ) {
         // todo: do not use .defaultProject
         val service = ProjectManager.getInstance().defaultProject.service<CommandsRegService>()
-        val markedMethodsTable = service.getMarkedMethods()["lineMarkers"] as Map<String, LineMarker>
+        val markedMethodsTable = service.getMarkedMethods()["lineMarkers"] as Map<String, LineMarker>? ?: return
 
         elements.filterIsInstance<KtQualifiedExpression>()
             .filter { it.lastChild?.firstChild != null

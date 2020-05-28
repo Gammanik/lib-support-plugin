@@ -1,8 +1,6 @@
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.PathManager.getPluginsPath
-import com.intellij.openapi.components.service
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.OrderEntry
@@ -39,19 +37,8 @@ class ShowPsiAction : AnAction() {
     }
 
     private fun updateMarkedMethods(scriptFile: Reader) {
-        val dslPath = toSystemIndependentName(getPluginsPath() + "/lib-support/lib/dsl-lib-support.jar")
-        val jarNames: List<File> = KotlinJars.kotlinScriptStandardJars + listOf(File(dslPath))
-
-        val factory = KotlinJsr223StandardScriptEngineFactory4Idea()
-        val engine = KotlinJsr223JvmScriptEngine4Idea(
-            factory,
-            jarNames,
-            "kotlin.script.templates.standard.ScriptTemplateWithBindings",
-            { ctx, argTypes -> ScriptArgsWithTypes(arrayOf(ctx.getBindings(ScriptContext.ENGINE_SCOPE)), argTypes ?: emptyArray()) },
-            arrayOf(Map::class)
-        )
+        val engine = getEngine()
         val res: Map<String, Any> = withCorrectClassLoader { engine.eval(scriptFile) as Map<String, Any> }
-
 //        val service = ProjectManager.getInstance().defaultProject.service<CommandsRegService>()
 //        service.updateMarkedMethods(res)
         Messages.showMessageDialog("$res", "title", Messages.getInformationIcon())
@@ -69,11 +56,21 @@ class ShowPsiAction : AnAction() {
         return res
     }
 
-    // todo: do I need it?
-    override fun update(e: AnActionEvent) {
-        val project = e.project
-        e.presentation.isEnabledAndVisible = project != null
-    }
+    private fun getEngine(): KotlinJsr223JvmScriptEngine4Idea {
+        val dslPath = toSystemIndependentName(getPluginsPath() + "/lib-support/lib/dsl-lib-support.jar")
+        val ktJar = toSystemIndependentName(System.getProperty("user.home") +
+                "/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/2019.3.3/4c54deba9ff34a615b3072cd2def3558ff462987/ideaIC-2019.3.3/plugins/Kotlin/lib/kotlin-plugin.jar")
+        val scriptDeps = mutableListOf(File(ktJar), File(dslPath))
+        val jarNames: List<File> = KotlinJars.kotlinScriptStandardJars + scriptDeps
 
+        val factory = KotlinJsr223StandardScriptEngineFactory4Idea()
+        return KotlinJsr223JvmScriptEngine4Idea(
+            factory,
+            jarNames,
+            "kotlin.script.templates.standard.ScriptTemplateWithBindings",
+            { ctx, argTypes -> ScriptArgsWithTypes(arrayOf(ctx.getBindings(ScriptContext.ENGINE_SCOPE)), argTypes ?: emptyArray()) },
+            arrayOf(Map::class)
+        )
+    }
 }
 

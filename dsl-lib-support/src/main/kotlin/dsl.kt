@@ -24,12 +24,18 @@ class DslBuilder {
 }
 
 data class Inspection(
-    var defaultFixText: String? = null
+    var defaultFixText: String? = null,
+    var applyTo: Any? = null,
+    var isApplicable: Any?,
+    var kClass: Class<*>
 )
 
 class InspectionBuilder {
     var defaultFixText: String? = null
-    fun build() = Inspection()
+    var applyTo: Any? = null // KtPsiFactory.(element: K, project: Project, editor: Editor?) -> Unit
+    var isApplicable: Any? = null // (element: K) -> Boolean
+    lateinit var kClass: Class<*> // Class<K : KtElement>
+    fun build() = Inspection(defaultFixText, applyTo, isApplicable, kClass)
 }
 
 fun DslBuilder.addApplicableInspection(inspection: InspectionBuilder.() -> Unit) {
