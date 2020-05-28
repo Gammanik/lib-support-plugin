@@ -1,6 +1,7 @@
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.PathManager.getPluginsPath
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.OrderEntry
@@ -57,10 +58,13 @@ class ShowPsiAction : AnAction() {
     }
 
     private fun getEngine(): KotlinJsr223JvmScriptEngine4Idea {
-        val dslPath = toSystemIndependentName(getPluginsPath() + "/lib-support/lib/dsl-lib-support.jar")
-        val ktJar = toSystemIndependentName(System.getProperty("user.home") +
+        val dslJarPath = toSystemIndependentName(getPluginsPath() + "/lib-support/lib/dsl-lib-support.jar")
+        val kotlinPluginJarPath = toSystemIndependentName(System.getProperty("user.home") +
                 "/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/2019.3.3/4c54deba9ff34a615b3072cd2def3558ff462987/ideaIC-2019.3.3/plugins/Kotlin/lib/kotlin-plugin.jar")
-        val scriptDeps = mutableListOf(File(ktJar), File(dslPath))
+        val ideaApiJarPath = toSystemIndependentName(System.getProperty("user.home") +
+                "/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/2019.3.3/4c54deba9ff34a615b3072cd2def3558ff462987/ideaIC-2019.3.3/lib/platform-api.jar")
+
+        val scriptDeps = mutableListOf(File(kotlinPluginJarPath), File(dslJarPath), File(ideaApiJarPath))
         val jarNames: List<File> = KotlinJars.kotlinScriptStandardJars + scriptDeps
 
         val factory = KotlinJsr223StandardScriptEngineFactory4Idea()
