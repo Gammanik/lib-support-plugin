@@ -12,7 +12,7 @@ class DslBuilder {
     val commands = mutableListOf<Any>()
 
     fun build(): Map<String, Any> {
-        val inspections =  mutableSetOf<Inspection<out KtElement>>() // todo: in or out?
+        val inspections =  mutableSetOf<Inspection<out KtElement>>()
         val lineMarkers = mutableMapOf<String, LineMarker>()
 
         val resMap = HashMap<String, Any>()

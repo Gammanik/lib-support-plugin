@@ -15,14 +15,12 @@ class MyAbstractInspection : AbstractKotlinInspection()  {
         private val inspections: Set<Inspection<in KtElement>> = service.getInspections()
     }
 
-    final override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession) =
+    override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession) =
         object : KtVisitorVoid() {
             override fun visitKtElement(element: KtElement) {
                 super.visitKtElement(element)
 
-                println("stars buildVisitor")
                 for(ins in inspections) {
-                    println("buildVisitor ins ${ins}")
                     if (!ins.kClass.isInstance(element) || element.textLength == 0) continue
 
                     visitTargetElement(element, holder, isOnTheFly, ins)
@@ -34,7 +32,6 @@ class MyAbstractInspection : AbstractKotlinInspection()  {
     // This function should be called from visitor built by a derived inspection
     private fun visitTargetElement(element: KtElement, holder: ProblemsHolder, isOnTheFly: Boolean, ins: Inspection<in KtElement>) {
         if (!ins.isApplicable(element)) return
-//        if (!ins.kClass.isInstance(element) || element.textLength == 0) return
 
         holder.registerProblemWithoutOfflineInformation(
             element,

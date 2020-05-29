@@ -20,4 +20,10 @@
 //                    } == true
 //        }
 //    }
+//
+//    addLineMarkerProvider {
+//        fqName = "LibExampleClass.method1"
+//        message = "icon message"
+//        icon = "/plugins/icons/IconName"
+//    }
 //}
