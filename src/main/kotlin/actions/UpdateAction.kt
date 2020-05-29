@@ -1,7 +1,10 @@
+package actions
+
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.PathManager.getPluginsPath
-import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.OrderEntry
@@ -19,7 +22,7 @@ import java.io.Reader
 import javax.script.ScriptContext
 import kotlin.script.experimental.jvm.util.KotlinJars
 
-class ShowPsiAction : AnAction() {
+class UpdateAction : AnAction() {
     override fun actionPerformed(e: AnActionEvent) { //todo: use  val s = p.service<MethodRegService>()
         val module = ModuleRootManager.getInstance(e.project?.allModules()!![2])
         val orderEntries: Array<OrderEntry> = module.orderEntries
@@ -40,9 +43,9 @@ class ShowPsiAction : AnAction() {
     private fun updateMarkedMethods(scriptFile: Reader) {
         val engine = getEngine()
         val res: Map<String, Any> = withCorrectClassLoader { engine.eval(scriptFile) as Map<String, Any> }
-//        val service = ProjectManager.getInstance().defaultProject.service<CommandsRegService>()
-//        service.updateMarkedMethods(res)
+        val service = ProjectManager.getInstance().defaultProject.service<services.CommandsRegService>()
         Messages.showMessageDialog("$res", "title", Messages.getInformationIcon())
+        service.updateCommands(res)
     }
 
     private fun <T>withCorrectClassLoader(action: () -> T) : T {

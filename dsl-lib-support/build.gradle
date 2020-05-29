@@ -1,6 +1,7 @@
 
 plugins {
     id 'java-library'
+    id 'org.jetbrains.intellij'
     id 'org.jetbrains.kotlin.jvm' // version '1.3.72'
 }
 
@@ -15,7 +16,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-script-runtime"
 
     compileOnly files("$homePath/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/2019.3.3/4c54deba9ff34a615b3072cd2def3558ff462987/ideaIC-2019.3.3/plugins/Kotlin/lib/kotlin-plugin.jar")
-    compileOnly files("$homePath/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/2019.3.3/4c54deba9ff34a615b3072cd2def3558ff462987/ideaIC-2019.3.3/lib/platform-api.jar")
+//    compileOnly files("$homePath/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/2019.3.3/4c54deba9ff34a615b3072cd2def3558ff462987/ideaIC-2019.3.3/lib/platform-api.jar")
 
     testImplementation "org.jetbrains.kotlin:kotlin-script-runtime:1.3.72"
     testImplementation "org.jetbrains.kotlin:kotlin-compiler-embeddable:1.3.72"
