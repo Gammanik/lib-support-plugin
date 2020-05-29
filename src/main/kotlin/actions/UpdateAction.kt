@@ -1,3 +1,5 @@
+package actions
+
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.PathManager.getPluginsPath
@@ -20,7 +22,7 @@ import java.io.Reader
 import javax.script.ScriptContext
 import kotlin.script.experimental.jvm.util.KotlinJars
 
-class ShowPsiAction : AnAction() {
+class UpdateAction : AnAction() {
     override fun actionPerformed(e: AnActionEvent) { //todo: use  val s = p.service<MethodRegService>()
         val module = ModuleRootManager.getInstance(e.project?.allModules()!![2])
         val orderEntries: Array<OrderEntry> = module.orderEntries
@@ -39,26 +41,15 @@ class ShowPsiAction : AnAction() {
     }
 
     private fun updateMarkedMethods(scriptFile: Reader) {
-        val dslPath = toSystemIndependentName(getPluginsPath() + "/lib-support/lib/dsl-lib-support.jar")
-        val jarNames: List<File> = KotlinJars.kotlinScriptStandardJars + listOf(File(dslPath))
-
-        val factory = KotlinJsr223StandardScriptEngineFactory4Idea()
-        val engine = KotlinJsr223JvmScriptEngine4Idea(
-            factory,
-            jarNames,
-            "kotlin.script.templates.standard.ScriptTemplateWithBindings",
-            { ctx, argTypes -> ScriptArgsWithTypes(arrayOf(ctx.getBindings(ScriptContext.ENGINE_SCOPE)), argTypes ?: emptyArray()) },
-            arrayOf(Map::class)
-        )
-        val res: Map<String, MethodToMark> = withCorrectClassLoader { engine.eval(scriptFile) as Map<String, MethodToMark> }
-
-        val service = ProjectManager.getInstance().defaultProject.service<MethodRegService>()
-        service.updateMarkedMethods(res)
+        val engine = getEngine()
+        val res: Map<String, Any> = withCorrectClassLoader { engine.eval(scriptFile) as Map<String, Any> }
+        val service = ProjectManager.getInstance().defaultProject.service<services.CommandsRegService>()
         Messages.showMessageDialog("$res", "title", Messages.getInformationIcon())
+        service.updateCommands(res)
     }
 
-    private fun <T>withCorrectClassLoader(action: () -> T?) : T {
-        var res: T? = null
+    private fun <T>withCorrectClassLoader(action: () -> T) : T {
+        val res: T
         val oldClassLoader = Thread.currentThread().contextClassLoader
         Thread.currentThread().contextClassLoader = this.javaClass.classLoader
         try {
@@ -66,13 +57,27 @@ class ShowPsiAction : AnAction() {
         } finally {
             Thread.currentThread().contextClassLoader = oldClassLoader
         }
-        return res!!
+        return res
     }
 
-    override fun update(e: AnActionEvent) {
-        val project = e.project
-        e.presentation.isEnabledAndVisible = project != null
-    }
+    private fun getEngine(): KotlinJsr223JvmScriptEngine4Idea {
+        val dslJarPath = toSystemIndependentName(getPluginsPath() + "/lib-support/lib/dsl-lib-support.jar")
+        val kotlinPluginJarPath = toSystemIndependentName(System.getProperty("user.home") +
+                "/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/2019.3.3/4c54deba9ff34a615b3072cd2def3558ff462987/ideaIC-2019.3.3/plugins/Kotlin/lib/kotlin-plugin.jar")
+        val ideaApiJarPath = toSystemIndependentName(System.getProperty("user.home") +
+                "/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/2019.3.3/4c54deba9ff34a615b3072cd2def3558ff462987/ideaIC-2019.3.3/lib/platform-api.jar")
 
+        val scriptDeps = mutableListOf(File(kotlinPluginJarPath), File(dslJarPath), File(ideaApiJarPath))
+        val jarNames: List<File> = KotlinJars.kotlinScriptStandardJars + scriptDeps
+
+        val factory = KotlinJsr223StandardScriptEngineFactory4Idea()
+        return KotlinJsr223JvmScriptEngine4Idea(
+            factory,
+            jarNames,
+            "kotlin.script.templates.standard.ScriptTemplateWithBindings",
+            { ctx, argTypes -> ScriptArgsWithTypes(arrayOf(ctx.getBindings(ScriptContext.ENGINE_SCOPE)), argTypes ?: emptyArray()) },
+            arrayOf(Map::class)
+        )
+    }
 }
 
