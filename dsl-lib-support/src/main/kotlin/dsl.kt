@@ -7,6 +7,10 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 @DslMarker
 annotation class LibSupportDslMarker
 
+enum class CommandTypes {
+    INSPECTIONS, LINE_MARKERS
+}
+
 @LibSupportDslMarker
 class DslBuilder {
     val commands = mutableListOf<Any>()
@@ -19,12 +23,12 @@ class DslBuilder {
         commands.forEach{
             when (it) {
                 is Inspection<*> -> inspections.add(it)
-                is LineMarker -> lineMarkers[it.fqName!!] = it
+                is LineMarker -> lineMarkers[it.fqName] = it
             }
         }
 
-        resMap["inspections"] = inspections
-        resMap["lineMarkers"] = lineMarkers
+        resMap[CommandTypes.INSPECTIONS.toString()] = inspections
+        resMap[CommandTypes.LINE_MARKERS.toString()] = lineMarkers
         return resMap
     }
 }
@@ -40,7 +44,7 @@ class InspectionBuilder<K : KtElement> {
     var defaultFixText: String? = null
     lateinit var applyTo: KtPsiFactory.(element: K, project: Project, editor: Editor?) -> Unit
     lateinit var isApplicable: ((K) -> Boolean)
-    lateinit var kClass: Class<K> // Class<K : KtElement>
+    lateinit var kClass: Class<K>
     var inspectionText : ((K) -> String)? = null // todo
     val inspectionHighlightType: (element: K) -> ProblemHighlightType = { _: K -> ProblemHighlightType.GENERIC_ERROR_OR_WARNING }
     fun build() = Inspection<K>(defaultFixText, applyTo, isApplicable, kClass)
@@ -51,13 +55,13 @@ fun <K : KtElement> DslBuilder.addApplicableInspection(inspection: InspectionBui
 }
 
 data class LineMarker(
-    var fqName: String? = null,
+    val fqName: String,
     var message: String? = null,
     var icon: String? = null
 )
 
 class LineMarkerBuilder {
-    var fqName: String? = null
+    lateinit var fqName: String
     var message: String? = null
     var icon: String? = null
     fun build() = LineMarker(fqName, message, icon)
