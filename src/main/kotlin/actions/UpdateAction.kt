@@ -25,6 +25,7 @@ import kotlin.script.experimental.jvm.util.KotlinJars
 
 class UpdateAction : AnAction() {
     private val service = ProjectManager.getInstance().defaultProject.service<services.CommandsRegService>()
+    private val listener = MyLibChangeListener()
 
     override fun actionPerformed(e: AnActionEvent) { //todo: use  val s = p.service<MethodRegService>()
         val module = ModuleRootManager.getInstance(e.project?.allModules()!![2])
@@ -36,34 +37,26 @@ class UpdateAction : AnAction() {
         orderEntries.filterIsInstance<LibraryOrderEntry>()
             .forEach {
                 if (it.library is LibraryImpl) {
-                    val l: LibraryImpl = it.library as LibraryImpl
-                    l.addRootSetChangedListener {
-                        // todo: implement
-                        val libJars = it.getFiles(OrderRootType.CLASSES)
-                        println("root changed: ${it.javaClass} ${libJars}")
-                        val libRootPath = libJars[0].path
-                        if (libJars.isNotEmpty()) {
-                            findAndRunKtsConfig(libRootPath)
-                        }
-                    }
+                    (it.library as LibraryImpl).addRootSetChangedListener(listener)
                 }
 
                 val libJars = it.library!!.getFiles(OrderRootType.CLASSES)
                 if (libJars.isNotEmpty()) {
-                    findAndRunKtsConfig(libJars[0].path)
+                    service.findAndRunKtsConfig(libJars[0].path)
                 }
             }
     }
 
-    private fun findAndRunKtsConfig(libRootVfsPath: String) {
-        val libRoot = JarFileSystem.getInstance().findFileByPath(libRootVfsPath)
-        val script = libRoot?.findChild("META-INF")
-            ?.findChild("lib-support")?.findChild("settings.kts")
-
-        if (script != null) {
-            val res = service.updateFromScript(InputStreamReader(script.inputStream))
-            Messages.showMessageDialog("$res", "title", Messages.getInformationIcon())
+    inner class MyLibChangeListener: RootProvider.RootSetChangedListener {
+        override fun rootSetChanged(wrapper: RootProvider) {
+            val libJars = wrapper.getFiles(OrderRootType.CLASSES)
+            println("root changed: ${wrapper.javaClass} ${libJars}")
+            val libRootPath = libJars[0].path
+            if (libJars.isNotEmpty()) {
+                service.findAndRunKtsConfig(libRootPath)
+            }
         }
+
     }
 }
 

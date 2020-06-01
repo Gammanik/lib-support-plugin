@@ -48,7 +48,5 @@ class LibMethodLineMarker: LineMarkerProvider {
     }
 
 
-    override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
-        return null
-    }
+    override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? { return null }
 }

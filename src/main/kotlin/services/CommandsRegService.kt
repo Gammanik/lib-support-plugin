@@ -6,12 +6,15 @@ import LineMarker
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.JarFileSystem
 import org.jetbrains.kotlin.cli.common.repl.ScriptArgsWithTypes
 import org.jetbrains.kotlin.jsr223.KotlinJsr223JvmScriptEngine4Idea
 import org.jetbrains.kotlin.jsr223.KotlinJsr223StandardScriptEngineFactory4Idea
 import org.jetbrains.kotlin.psi.KtElement
 import java.io.File
+import java.io.InputStreamReader
 import java.io.Reader
 import javax.script.ScriptContext
 import kotlin.script.experimental.jvm.util.KotlinJars
@@ -24,7 +27,7 @@ class CommandsRegService(project: Project?) {
     }
 
     private var engine: KotlinJsr223JvmScriptEngine4Idea? = null
-    private var commands: Map<String, Any> = mapOf() // todo: CommandTypes.values().stream.collect(toMap)
+    private var commands: Map<String, Any> = mapOf()
 
     fun getInspections(): Set<Inspection<in KtElement>> {
         @Suppress("UNCHECKED_CAST")
@@ -36,19 +39,11 @@ class CommandsRegService(project: Project?) {
         })
     }
 
-    fun updateCommands(commands: Map<String, Any>) {
-        this.commands = commands
-    }
-
     fun getMarkedMethods(): Map<String, LineMarker>? {
         return commands[CommandTypes.LINE_MARKERS.toString()] as Map<String, LineMarker>?
     }
 
-    fun getCommands(): Map<String, Any> {
-        return commands
-    }
-
-    fun updateFromScript(scriptFile: Reader): Map<String, Any> {
+    private fun updateFromScript(scriptFile: Reader): Map<String, Any> {
         if (engine == null) { engine = getEngine() }
 
         val res: Map<String, Any> = withCorrectClassLoader { engine!!.eval(scriptFile) as Map<String, Any> }
@@ -97,6 +92,18 @@ class CommandsRegService(project: Project?) {
         )
     }
 
+    fun findAndRunKtsConfig(libRootVfsPath: String): Map<String, Any> {
+        val libRoot = JarFileSystem.getInstance().findFileByPath(libRootVfsPath)
+        val script = libRoot?.findChild("META-INF")
+            ?.findChild("lib-support")?.findChild("settings.kts")
 
+        if (script != null) {
+            val res = updateFromScript(InputStreamReader(script.inputStream))
+            Messages.showMessageDialog("$res", "title", Messages.getInformationIcon())
+            return res
+        }
+
+        return emptyMap()
+    }
 
 }
