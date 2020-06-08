@@ -71,5 +71,6 @@ fun DslBuilder.addLineMarkerProvider(marker: LineMarkerBuilder.() -> Unit) {
     commands.add(LineMarkerBuilder().apply(marker).build())
 }
 
+// todo: return Map<CommandType, Any>
 fun libSupport(commands: DslBuilder.() -> Unit): Map<String, Any> =
     DslBuilder().apply(commands).build()

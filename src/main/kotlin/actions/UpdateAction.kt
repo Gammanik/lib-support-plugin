@@ -42,7 +42,10 @@ class UpdateAction : AnAction() {
 
                 val libJars = it.library!!.getFiles(OrderRootType.CLASSES)
                 if (libJars.isNotEmpty()) {
-                    service.findAndRunKtsConfig(libJars[0].path)
+                    val res = service.findAndRunKtsConfig(libJars[0].path)
+                    if (res.isNotEmpty()) {
+                        Messages.showMessageDialog("$res", "title", Messages.getInformationIcon())
+                    }
                 }
             }
     }

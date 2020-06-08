@@ -9,6 +9,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.JarFileSystem
+import com.jetbrains.rd.util.addUnique
 import org.jetbrains.kotlin.cli.common.repl.ScriptArgsWithTypes
 import org.jetbrains.kotlin.jsr223.KotlinJsr223JvmScriptEngine4Idea
 import org.jetbrains.kotlin.jsr223.KotlinJsr223StandardScriptEngineFactory4Idea
@@ -27,35 +28,39 @@ class CommandsRegService(project: Project?) {
     }
 
     private var engine: KotlinJsr223JvmScriptEngine4Idea? = null
-    private var commands: Map<String, Any> = mapOf()
+    private var commands: MutableMap<String, Any> = mutableMapOf(
+        CommandTypes.INSPECTIONS.toString() to mutableSetOf<Inspection<in KtElement>>(),
+        CommandTypes.LINE_MARKERS.toString() to mutableMapOf<String, LineMarker>()
+    )
 
-    fun getInspections(): Set<Inspection<in KtElement>> {
+    fun getRegInspections(): Set<Inspection<in KtElement>> {
         @Suppress("UNCHECKED_CAST")
-
-        (return if (this.commands["inspections"] != null) {
-            this.commands["inspections"] as Set<Inspection<in KtElement>>
+        (return if (this.commands[CommandTypes.INSPECTIONS.toString()] != null) {
+            this.commands[CommandTypes.INSPECTIONS.toString()] as Set<Inspection<in KtElement>>
         } else {
             emptySet()
         })
     }
 
-    fun getMarkedMethods(): Map<String, LineMarker>? {
-        return commands[CommandTypes.LINE_MARKERS.toString()] as Map<String, LineMarker>?
+    fun getMarkedMethods(): Map<String, LineMarker> {
+        return commands[CommandTypes.LINE_MARKERS.toString()] as Map<String, LineMarker>
     }
 
     private fun updateFromScript(scriptFile: Reader): Map<String, Any> {
         if (engine == null) { engine = getEngine() }
-
         val res: Map<String, Any> = withCorrectClassLoader { engine!!.eval(scriptFile) as Map<String, Any> }
-        for (commandType in CommandTypes.values()) {
-            val newCommandsOfType = res[commandType.toString()]
 
-            if (newCommandsOfType != null) {
-                commands[commandType.toString()]
-            }
+        val lineMarkers = res[CommandTypes.LINE_MARKERS.toString()] as Map<String, LineMarker>?
+        lineMarkers?.forEach { k, v ->
+            (commands[CommandTypes.LINE_MARKERS.toString()] as MutableMap<String, LineMarker>)[k] = v
         }
 
-        return res
+        val inspections = res[CommandTypes.INSPECTIONS.toString()] as Set<Inspection<out KtElement>>?
+        inspections?.forEach{ insp ->
+            (commands[CommandTypes.INSPECTIONS.toString()] as MutableSet<Inspection<out KtElement>>)
+                .add(insp)
+        }
+        return commands
     }
 
     private fun <T>withCorrectClassLoader(action: () -> T) : T {
@@ -77,7 +82,6 @@ class CommandsRegService(project: Project?) {
         val ideaApiJarPath = System.getProperty("user.home") +
                 "/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/2019.3.3/4c54deba9ff34a615b3072cd2def3558ff462987/ideaIC-2019.3.3/lib/platform-api.jar"
 
-
         val scriptDeps: List<File> = listOf(kotlinPluginJarPath, dslJarPath, ideaApiJarPath)
             .map { File(FileUtil.toSystemIndependentName(it)) }
         val jarNames: List<File> = KotlinJars.kotlinScriptStandardJars + scriptDeps
@@ -97,13 +101,11 @@ class CommandsRegService(project: Project?) {
         val script = libRoot?.findChild("META-INF")
             ?.findChild("lib-support")?.findChild("settings.kts")
 
-        if (script != null) {
-            val res = updateFromScript(InputStreamReader(script.inputStream))
-            Messages.showMessageDialog("$res", "title", Messages.getInformationIcon())
-            return res
+        return if (script != null) {
+            updateFromScript(InputStreamReader(script.inputStream))
+        } else {
+            emptyMap()
         }
-
-        return emptyMap()
     }
 
 }

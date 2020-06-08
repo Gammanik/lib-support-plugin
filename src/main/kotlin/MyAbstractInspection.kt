@@ -12,7 +12,7 @@ class MyAbstractInspection : AbstractKotlinInspection()  {
 
     companion object {
         private val service = ProjectManager.getInstance().defaultProject.service<services.CommandsRegService>()
-        private val inspections: Set<Inspection<in KtElement>> = service.getInspections()
+        private val inspections: Set<Inspection<in KtElement>> = service.getRegInspections()
     }
 
     override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession) =
