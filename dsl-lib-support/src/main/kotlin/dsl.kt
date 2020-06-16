@@ -7,29 +7,25 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 @DslMarker
 annotation class LibSupportDslMarker
 
-enum class CommandTypes {
-    INSPECTIONS, LINE_MARKERS
-}
+data class ScriptResult(
+    val inspections: List<Inspection<in KtElement>>,
+    val lineMarkers: Map<String, LineMarker>
+)
 
 @LibSupportDslMarker
 class DslBuilder {
     val commands = mutableListOf<Any>()
 
-    fun build(): Map<String, Any> {
-        val inspections =  mutableSetOf<Inspection<out KtElement>>()
+    fun build(): ScriptResult {
+        val inspections =  mutableListOf<Inspection<in KtElement>>()
         val lineMarkers = mutableMapOf<String, LineMarker>()
-
-        val resMap = HashMap<String, Any>()
         commands.forEach{
             when (it) {
-                is Inspection<*> -> inspections.add(it)
+                is Inspection<*> -> inspections.add(it as Inspection<in KtElement>)
                 is LineMarker -> lineMarkers[it.fqName] = it
             }
         }
-
-        resMap[CommandTypes.INSPECTIONS.toString()] = inspections
-        resMap[CommandTypes.LINE_MARKERS.toString()] = lineMarkers
-        return resMap
+        return ScriptResult(inspections, lineMarkers)
     }
 }
 
@@ -45,7 +41,7 @@ class InspectionBuilder<K : KtElement> {
     lateinit var applyTo: KtPsiFactory.(element: K, project: Project, editor: Editor?) -> Unit
     lateinit var isApplicable: ((K) -> Boolean)
     lateinit var kClass: Class<K>
-    var inspectionText : ((K) -> String)? = null // todo
+    var inspectionText : ((K) -> String)? = null
     val inspectionHighlightType: (element: K) -> ProblemHighlightType = { _: K -> ProblemHighlightType.GENERIC_ERROR_OR_WARNING }
     fun build() = Inspection<K>(defaultFixText, applyTo, isApplicable, kClass)
 }
@@ -71,6 +67,5 @@ fun DslBuilder.addLineMarkerProvider(marker: LineMarkerBuilder.() -> Unit) {
     commands.add(LineMarkerBuilder().apply(marker).build())
 }
 
-// todo: return Map<CommandType, Any>
-fun libSupport(commands: DslBuilder.() -> Unit): Map<String, Any> =
+fun libSupport(commands: DslBuilder.() -> Unit): ScriptResult =
     DslBuilder().apply(commands).build()

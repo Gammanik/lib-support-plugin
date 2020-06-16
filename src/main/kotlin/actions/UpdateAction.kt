@@ -28,7 +28,7 @@ class UpdateAction : AnAction() {
     private val listener = MyLibChangeListener()
 
     override fun actionPerformed(e: AnActionEvent) { //todo: use  val s = p.service<MethodRegService>()
-        val module = ModuleRootManager.getInstance(e.project?.allModules()!![2])
+        val module = ModuleRootManager.getInstance(e.project?.allModules()!![2]) // todo: wtf
         val orderEntries: Array<OrderEntry> = module.orderEntries
         registerLibraries(orderEntries)
     }
@@ -43,7 +43,7 @@ class UpdateAction : AnAction() {
                 val libJars = it.library!!.getFiles(OrderRootType.CLASSES)
                 if (libJars.isNotEmpty()) {
                     val res = service.findAndRunKtsConfig(libJars[0].path)
-                    if (res.isNotEmpty()) {
+                    if (res != null) {
                         Messages.showMessageDialog("$res", "title", Messages.getInformationIcon())
                     }
                 }
@@ -53,7 +53,6 @@ class UpdateAction : AnAction() {
     inner class MyLibChangeListener: RootProvider.RootSetChangedListener {
         override fun rootSetChanged(wrapper: RootProvider) {
             val libJars = wrapper.getFiles(OrderRootType.CLASSES)
-            println("root changed: ${wrapper.javaClass} ${libJars}")
             val libRootPath = libJars[0].path
             if (libJars.isNotEmpty()) {
                 service.findAndRunKtsConfig(libRootPath)

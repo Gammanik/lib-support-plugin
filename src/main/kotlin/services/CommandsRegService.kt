@@ -1,15 +1,13 @@
 package services
 
-import CommandTypes
 import Inspection
 import LineMarker
+import ScriptResult
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.JarFileSystem
-import com.jetbrains.rd.util.addUnique
 import org.jetbrains.kotlin.cli.common.repl.ScriptArgsWithTypes
 import org.jetbrains.kotlin.jsr223.KotlinJsr223JvmScriptEngine4Idea
 import org.jetbrains.kotlin.jsr223.KotlinJsr223StandardScriptEngineFactory4Idea
@@ -28,48 +26,37 @@ class CommandsRegService(project: Project?) {
     }
 
     private var engine: KotlinJsr223JvmScriptEngine4Idea? = null
-    private var commands: MutableMap<String, Any> = mutableMapOf(
-        CommandTypes.INSPECTIONS.toString() to mutableSetOf<Inspection<in KtElement>>(),
-        CommandTypes.LINE_MARKERS.toString() to mutableMapOf<String, LineMarker>()
-    )
 
-    fun getRegInspections(): Set<Inspection<in KtElement>> {
-        @Suppress("UNCHECKED_CAST")
-        (return if (this.commands[CommandTypes.INSPECTIONS.toString()] != null) {
-            this.commands[CommandTypes.INSPECTIONS.toString()] as Set<Inspection<in KtElement>>
-        } else {
-            emptySet()
-        })
+    data class CollectedCommands(
+        val inspections: MutableList<Inspection<in KtElement>>,
+        val lineMarkers: MutableMap<String, LineMarker>)
+
+    private val allCommands = CollectedCommands(mutableListOf(), mutableMapOf())
+
+
+    fun getRegInspections(): List<Inspection<in KtElement>> {
+        return allCommands.inspections
     }
 
     fun getMarkedMethods(): Map<String, LineMarker> {
-        return commands[CommandTypes.LINE_MARKERS.toString()] as Map<String, LineMarker>
+        return allCommands.lineMarkers
     }
 
-    private fun updateFromScript(scriptFile: Reader): Map<String, Any> {
+    private fun updateFromScript(scriptFile: Reader): ScriptResult {
         if (engine == null) { engine = getEngine() }
-        val res: Map<String, Any> = withCorrectClassLoader { engine!!.eval(scriptFile) as Map<String, Any> }
+        val res = withCorrectClassLoader { engine!!.eval(scriptFile) as ScriptResult }
 
-        val lineMarkers = res[CommandTypes.LINE_MARKERS.toString()] as Map<String, LineMarker>?
-        lineMarkers?.forEach { k, v ->
-            (commands[CommandTypes.LINE_MARKERS.toString()] as MutableMap<String, LineMarker>)[k] = v
-        }
-
-        val inspections = res[CommandTypes.INSPECTIONS.toString()] as Set<Inspection<out KtElement>>?
-        inspections?.forEach{ insp ->
-            (commands[CommandTypes.INSPECTIONS.toString()] as MutableSet<Inspection<out KtElement>>)
-                .add(insp)
-        }
-        return commands
+        res.lineMarkers.forEach { (k, v) -> allCommands.lineMarkers[k] = v }
+        res.inspections.forEach { ins -> allCommands.inspections.add(ins) }
+        return res
     }
 
     private fun <T>withCorrectClassLoader(action: () -> T) : T {
         val res: T
         val oldClassLoader = Thread.currentThread().contextClassLoader
         Thread.currentThread().contextClassLoader = this.javaClass.classLoader
-        try {
-            res = action()
-        } finally {
+        try { res = action() }
+        finally {
             Thread.currentThread().contextClassLoader = oldClassLoader
         }
         return res
@@ -96,15 +83,15 @@ class CommandsRegService(project: Project?) {
         )
     }
 
-    fun findAndRunKtsConfig(libRootVfsPath: String): Map<String, Any> {
+    fun findAndRunKtsConfig(libRootVfsPath: String): ScriptResult? {
         val libRoot = JarFileSystem.getInstance().findFileByPath(libRootVfsPath)
         val script = libRoot?.findChild("META-INF")
             ?.findChild("lib-support")?.findChild("settings.kts")
 
         return if (script != null) {
-            updateFromScript(InputStreamReader(script.inputStream))
+            return updateFromScript(InputStreamReader(script.inputStream))
         } else {
-            emptyMap()
+            null
         }
     }
 
