@@ -16,6 +16,7 @@ class AddInspectionAction: AnAction() {
         ep.pluginDescriptor = PluginManager.getPlugin(PluginId.getId("org.example.lib-support"))!!
         ep.language = "kotlin"
         ep.implementationClass = "MyAbstractInspection"
+        ep.shortName = "MyAbstractInspection"
         ep.displayName = "someEx"
         ep.groupBundle = "messages.InspectionsBundle"
         ep.groupKey = "group.names.probable.bugs"

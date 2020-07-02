@@ -14,13 +14,11 @@ import org.jetbrains.kotlin.psi.KtReferenceExpression
 import services.CommandsRegService
 import javax.swing.Icon
 
-
 class LibMethodLineMarker: LineMarkerProvider {
     override fun collectSlowLineMarkers(
         elements: MutableList<PsiElement>,
         result: MutableCollection<LineMarkerInfo<PsiElement>>
     ) {
-        // todo: do not use .defaultProject
         val service = ProjectManager.getInstance().defaultProject.service<CommandsRegService>()
         val markedMethodsTable = service.getMarkedMethods()
 
@@ -49,7 +47,6 @@ class LibMethodLineMarker: LineMarkerProvider {
             }
 
     }
-
 
     override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? { return null }
 }

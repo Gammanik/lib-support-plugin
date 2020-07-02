@@ -27,8 +27,8 @@ class UpdateAction : AnAction() {
     private val service = ProjectManager.getInstance().defaultProject.service<services.CommandsRegService>()
     private val listener = MyLibChangeListener()
 
-    override fun actionPerformed(e: AnActionEvent) { //todo: use  val s = p.service<MethodRegService>()
-        val module = ModuleRootManager.getInstance(e.project?.allModules()!![2]) // todo: wtf
+    override fun actionPerformed(e: AnActionEvent) {
+        val module = ModuleRootManager.getInstance(e.project?.allModules()!![2])
         val orderEntries: Array<OrderEntry> = module.orderEntries
         registerLibraries(orderEntries)
     }

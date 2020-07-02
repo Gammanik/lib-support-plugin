@@ -33,6 +33,7 @@ data class Inspection<K : KtElement>(
     var defaultFixText: String? = null,
     var applyTo: KtPsiFactory.(element: K, project: Project, editor: Editor?) -> Unit,
     var isApplicable: ((element: K) -> Boolean),
+    var inspectionHighlightType: (element: K) -> ProblemHighlightType,
     var kClass: Class<K>
 )
 
@@ -43,7 +44,7 @@ class InspectionBuilder<K : KtElement> {
     lateinit var kClass: Class<K>
     var inspectionText : ((K) -> String)? = null
     val inspectionHighlightType: (element: K) -> ProblemHighlightType = { _: K -> ProblemHighlightType.GENERIC_ERROR_OR_WARNING }
-    fun build() = Inspection<K>(defaultFixText, applyTo, isApplicable, kClass)
+    fun build() = Inspection<K>(defaultFixText, applyTo, isApplicable, inspectionHighlightType, kClass)
 }
 
 fun <K : KtElement> DslBuilder.addApplicableInspection(inspection: InspectionBuilder<K>.() -> Unit) {

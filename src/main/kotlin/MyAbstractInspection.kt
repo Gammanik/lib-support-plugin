@@ -30,7 +30,6 @@ class MyAbstractInspection : AbstractKotlinInspection()  {
             }
         }
 
-
     // This function should be called from visitor built by a derived inspection
     private fun visitTargetElement(element: KtElement, holder: ProblemsHolder, isOnTheFly: Boolean, ins: Inspection<in KtElement>) {
         if (!ins.isApplicable(element)) return
@@ -40,11 +39,10 @@ class MyAbstractInspection : AbstractKotlinInspection()  {
             ins.defaultFixText ?: "",
             isOnTheFly,
             ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
-            element.textRange, // todo: inspectionHighlightRangeInElement(element),
-            LocalFix(ins.defaultFixText ?: "", ins) // todo: fixText(element)
+            element.textRange, // inspectionHighlightRangeInElement(element),
+            LocalFix(ins.defaultFixText ?: "", ins)
         )
     }
-
 
     private inner class LocalFix(val text: String,val ins: Inspection<in KtElement>) : LocalQuickFix {
         override fun startInWriteAction() = true
