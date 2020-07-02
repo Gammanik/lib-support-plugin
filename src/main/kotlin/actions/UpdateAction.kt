@@ -5,10 +5,11 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.PathManager.getPluginsPath
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.roots.LibraryOrderEntry
-import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.openapi.roots.OrderEntry
-import com.intellij.openapi.roots.OrderRootType
+import com.intellij.openapi.roots.*
+import com.intellij.openapi.roots.impl.libraries.LibraryEx
+import com.intellij.openapi.roots.impl.libraries.LibraryImpl
+import com.intellij.openapi.roots.libraries.Library
+import com.intellij.openapi.roots.libraries.LibraryTable
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import com.intellij.openapi.vfs.JarFileSystem
@@ -23,61 +24,41 @@ import javax.script.ScriptContext
 import kotlin.script.experimental.jvm.util.KotlinJars
 
 class UpdateAction : AnAction() {
-    override fun actionPerformed(e: AnActionEvent) { //todo: use  val s = p.service<MethodRegService>()
+    private val service = ProjectManager.getInstance().defaultProject.service<services.CommandsRegService>()
+    private val listener = MyLibChangeListener()
+
+    override fun actionPerformed(e: AnActionEvent) {
         val module = ModuleRootManager.getInstance(e.project?.allModules()!![2])
         val orderEntries: Array<OrderEntry> = module.orderEntries
+        registerLibraries(orderEntries)
+    }
 
+    private fun registerLibraries(orderEntries: Array<OrderEntry>) {
         orderEntries.filterIsInstance<LibraryOrderEntry>()
             .forEach {
-                val libJars = it.library!!.getFiles(OrderRootType.CLASSES)
-                val libRoot = JarFileSystem.getInstance().findFileByPath(libJars[0].path)
-                val script = libRoot?.findChild("META-INF")
-                    ?.findChild("lib-support")?.findChild("settings.kts")
+                if (it.library is LibraryImpl) {
+                    (it.library as LibraryImpl).addRootSetChangedListener(listener)
+                }
 
-                if (script != null) {
-                    updateMarkedMethods(InputStreamReader(script.inputStream))
+                val libJars = it.library!!.getFiles(OrderRootType.CLASSES)
+                if (libJars.isNotEmpty()) {
+                    val res = service.findAndRunKtsConfig(libJars[0].path)
+                    if (res != null) {
+                        Messages.showMessageDialog("$res", "title", Messages.getInformationIcon())
+                    }
                 }
             }
     }
 
-    private fun updateMarkedMethods(scriptFile: Reader) {
-        val engine = getEngine()
-        val res: Map<String, Any> = withCorrectClassLoader { engine.eval(scriptFile) as Map<String, Any> }
-        val service = ProjectManager.getInstance().defaultProject.service<services.CommandsRegService>()
-        Messages.showMessageDialog("$res", "title", Messages.getInformationIcon())
-        service.updateCommands(res)
-    }
-
-    private fun <T>withCorrectClassLoader(action: () -> T) : T {
-        val res: T
-        val oldClassLoader = Thread.currentThread().contextClassLoader
-        Thread.currentThread().contextClassLoader = this.javaClass.classLoader
-        try {
-            res = action()
-        } finally {
-            Thread.currentThread().contextClassLoader = oldClassLoader
+    inner class MyLibChangeListener: RootProvider.RootSetChangedListener {
+        override fun rootSetChanged(wrapper: RootProvider) {
+            val libJars = wrapper.getFiles(OrderRootType.CLASSES)
+            val libRootPath = libJars[0].path
+            if (libJars.isNotEmpty()) {
+                service.findAndRunKtsConfig(libRootPath)
+            }
         }
-        return res
-    }
 
-    private fun getEngine(): KotlinJsr223JvmScriptEngine4Idea {
-        val dslJarPath = toSystemIndependentName(getPluginsPath() + "/lib-support/lib/dsl-lib-support.jar")
-        val kotlinPluginJarPath = toSystemIndependentName(System.getProperty("user.home") +
-                "/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/2019.3.3/4c54deba9ff34a615b3072cd2def3558ff462987/ideaIC-2019.3.3/plugins/Kotlin/lib/kotlin-plugin.jar")
-        val ideaApiJarPath = toSystemIndependentName(System.getProperty("user.home") +
-                "/.gradle/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/2019.3.3/4c54deba9ff34a615b3072cd2def3558ff462987/ideaIC-2019.3.3/lib/platform-api.jar")
-
-        val scriptDeps = mutableListOf(File(kotlinPluginJarPath), File(dslJarPath), File(ideaApiJarPath))
-        val jarNames: List<File> = KotlinJars.kotlinScriptStandardJars + scriptDeps
-
-        val factory = KotlinJsr223StandardScriptEngineFactory4Idea()
-        return KotlinJsr223JvmScriptEngine4Idea(
-            factory,
-            jarNames,
-            "kotlin.script.templates.standard.ScriptTemplateWithBindings",
-            { ctx, argTypes -> ScriptArgsWithTypes(arrayOf(ctx.getBindings(ScriptContext.ENGINE_SCOPE)), argTypes ?: emptyArray()) },
-            arrayOf(Map::class)
-        )
     }
 }
 

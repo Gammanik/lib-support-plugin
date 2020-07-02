@@ -6,6 +6,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
+import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingLexer
 import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
 import org.jetbrains.kotlin.idea.references.KtSimpleNameReference
 import org.jetbrains.kotlin.psi.KtQualifiedExpression
@@ -13,15 +14,15 @@ import org.jetbrains.kotlin.psi.KtReferenceExpression
 import services.CommandsRegService
 import javax.swing.Icon
 
-
 class LibMethodLineMarker: LineMarkerProvider {
     override fun collectSlowLineMarkers(
         elements: MutableList<PsiElement>,
         result: MutableCollection<LineMarkerInfo<PsiElement>>
     ) {
-        // todo: do not use .defaultProject
         val service = ProjectManager.getInstance().defaultProject.service<CommandsRegService>()
-        val markedMethodsTable = service.getMarkedMethods()["lineMarkers"] as Map<String, LineMarker>? ?: return
+        val markedMethodsTable = service.getMarkedMethods()
+
+        if (markedMethodsTable.isEmpty()) { return }
 
         elements.filterIsInstance<KtQualifiedExpression>()
             .filter { it.lastChild?.firstChild != null
@@ -47,8 +48,5 @@ class LibMethodLineMarker: LineMarkerProvider {
 
     }
 
-
-    override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
-        return null
-    }
+    override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? { return null }
 }
