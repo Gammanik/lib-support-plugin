@@ -20,10 +20,11 @@ The result:
 
 
 ### Add custom inspection
-Exapmle of inspection: if a fuction does not have the suspend keyword it's marked as an error. When applied the suspend keyword is added.
+Exapmle of inspection: if a fuction' return type is Unit and it does not have the suspend keyword, then it's marked as an error. The suspend keyword is added if inspection is applied.
 ```kotlin
 addApplicableInspection<KtNamedFunction> {
-    defaultFixText = "fix text"
+    defaultFixText = "try to fix it!"
+    inspectionText = { f -> "add suspend keyword to: $f"}
     kClass = KtNamedFunction::class.java
     applyTo = { f: KtNamedFunction, project: Project, editor: Editor? ->
         f.addModifier(KtTokens.SUSPEND_KEYWORD)
@@ -31,11 +32,14 @@ addApplicableInspection<KtNamedFunction> {
 
     isApplicable = { f: KtNamedFunction ->
         !f.hasModifier(KtTokens.SUSPEND_KEYWORD) &&
-                f.resolveToDescriptorIfAny()?.run { !isSuspend && !isSuspendLambdaOrLocalFunction() }
+                f.resolveToDescriptorIfAny()?.run {
+                    !isSuspend && !isSuspendLambdaOrLocalFunction()
+                    && returnType?.isUnit()!!
+                } == true
     }
 }
 ```
-
+![insp1](https://user-images.githubusercontent.com/15042786/86418401-a545e300-bcd8-11ea-8e4a-a01e600cdcde.png)
 
 
 ### Full example of *settings.kts* file
